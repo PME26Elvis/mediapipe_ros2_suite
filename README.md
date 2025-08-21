@@ -60,6 +60,9 @@ ros2 launch mediapipe_ros2_py mp_node.launch.py model:=hand image_topic:=/image_
 # optional: gesture → turtlesim (in extra terminals)
 ros2 run turtlesim turtlesim_node
 ros2 run mediapipe_ros2_py gesture_to_turtlesim
+
+# Multi-camera example:
+ros2 launch mediapipe_ros2_py two_cams.launch.py
 ```
 
 For a pre-configured RViz layout you can also run:
