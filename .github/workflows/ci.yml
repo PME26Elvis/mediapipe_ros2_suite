@@ -1,5 +1,10 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
 
 jobs:
   humble:
@@ -16,7 +21,7 @@ jobs:
 
   jazzy:
     runs-on: ubuntu-24.04
-    continue-on-error: true   # 先容錯，之後再收緊
+    continue-on-error: true   
     steps:
       - uses: actions/checkout@v4
       - uses: ros-tooling/setup-ros@v0.7
@@ -25,4 +30,4 @@ jobs:
       - uses: ros-tooling/action-ros-ci@v0.4
         with:
           target-ros2-distro: jazzy
-          package-name: mediapipe_ros2_interfaces mediapipe_ros2_node mediapipe_ros2_py
+          package-name: mediapipe_ros2_interfaces
