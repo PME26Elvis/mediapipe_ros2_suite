@@ -6,6 +6,7 @@ This repository bundles three ROS 2 packages that turn Google **MediaPipe** Task
 
 ---
 **CI status:** Humble — passing (required) · Jazzy — experimental (non-blocking)
+![CI](https://github.com/PME26Elvis/mediapipe_ros2_suite/actions/workflows/ci.yml/badge.svg)
 
 ## Repository layout
 
