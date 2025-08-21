@@ -99,7 +99,7 @@ The **clean separation** between *landmarks* (low-level geometry) and *gesture* 
 
 ## Why this project (positioning)
 
-MediaPipe provides **lightweight, on-device** models that run well on CPUs. Many public ROS 2 integrations are examples rather than reusable packages. This suite turns MediaPipe Tasks into a **parameterized, versioned ROS component** with stable topics, built-in visualization, and a reference behavior demo. It is a drop-in **perception module** rather than a one-off script.
+MediaPipe provides **lightweight, on-device** models that run well on CPUs. Many public ROS 2 integrations are examples rather than reusable packages. This suite turns MediaPipe Tasks into a **parameterized, versioned ROS component** with stable topics, built-in visualization, and a reference behavior demo. It is a drop-in **perception module** rather than a one-off script. This project prioritizes event-level APIs and reproducibility over sheer breadth. The parameterized design and stable message contracts make adding new pipelines straightforward.
 
 ---
 
