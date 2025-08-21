@@ -69,17 +69,39 @@ class MPNode(Node):
         self.min_det = float(self.get_parameter('min_detection_confidence').value)
         self.min_pres = float(self.get_parameter('min_presence_confidence').value)
         self.min_trk = float(self.get_parameter('min_tracking_confidence').value)
-
+        self._frames = 0
+        self._last_report = self.get_clock().now().nanoseconds
         # resolve models dir via ament index (share dir of message pkg)
         from ament_index_python.packages import get_package_share_directory
         share_dir = get_package_share_directory('mediapipe_ros2_node')
         models_dir = os.path.join(share_dir, 'models')
+        models_dir = os.getenv(
+            "MP_MODELS_DIR",
+            os.path.join(get_package_share_directory('mediapipe_ros2_node'), 'models')
+        )
+        expected = {
+            'hand': 'hand_landmarker.task',
+            'gesture': 'gesture_recognizer.task',
+            'pose': 'pose_landmarker.task',
+            'face': 'face_landmarker.task',
+        }
+        model_key = self.model if self.model in expected else 'hand'
+        model_path = os.path.join(models_dir, expected[model_key])
         self.paths = {
             'gesture': os.path.join(models_dir, str(self.get_parameter('gesture_model_filename').value)),
             'hand':    os.path.join(models_dir, str(self.get_parameter('hand_model_filename').value)),
             'pose':    os.path.join(models_dir, str(self.get_parameter('pose_model_filename').value)),
             'face':    os.path.join(models_dir, str(self.get_parameter('face_model_filename').value)),
         }
+        if not os.path.exists(model_path):
+            self.get_logger().error(
+                "\nModel file not found: %s\n"
+                "Place the required .task files under:\n  %s\n"
+                "Expected names:\n  %s\n"
+                "Or set MP_MODELS_DIR to your folder.",
+                model_path, models_dir, ", ".join(sorted(expected.values()))
+            )
+            raise FileNotFoundError(model_path)
 
         # -------- Publishers --------
         self.pub_markers = self.create_publisher(MarkerArray, f'{self.topic_prefix}/markers', 10)
@@ -178,7 +200,13 @@ class MPNode(Node):
             self.pose.detect_async(mp_img, ts_ms)
         elif self.model == 'face' and self.face is not None:
             self.face.detect_async(mp_img, ts_ms)
-
+        now = self.get_clock().now().nanoseconds
+        self._frames += 1
+        if now - self._last_report > 1e9:
+            fps = self._frames * 1e9 / (now - self._last_report)
+            self.get_logger().info(f"pipeline={self.model} fps={fps:.1f}")
+            self._frames = 0
+            self._last_report = now
     # -------- Result callbacks --------
     def _on_gesture(self, result, output_image, timestamp_ms):
         if not result.gestures:
