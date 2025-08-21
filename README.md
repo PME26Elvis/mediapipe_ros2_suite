@@ -5,6 +5,7 @@ This repository bundles three ROS 2 packages that turn Google **MediaPipe** Task
 > Target ROS 2: **Humble** (Ubuntu 22.04). Python implementation (MediaPipe Tasks Python).
 
 ---
+**CI status:** Humble — passing (required) · Jazzy — experimental (non-blocking)
 
 ## Repository layout
 
