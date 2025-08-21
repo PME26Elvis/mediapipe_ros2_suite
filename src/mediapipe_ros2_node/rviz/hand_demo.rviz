@@ -1,0 +1,22 @@
+Visualization Manager:
+  Class: ""
+  Enabled: true
+  Name: root
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane: XY
+      Color: 160; 160; 160
+    - Class: rviz_default_plugins/MarkerArray
+      Name: MediaPipe Markers
+      Enabled: true
+      Marker Topic: /mediapipe/markers
+  Global Options:
+    Fixed Frame: camera_frame
+  Tools:
+    - Class: rviz_default_plugins/Interact
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit

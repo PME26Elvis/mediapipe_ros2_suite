@@ -1,0 +1,20 @@
+# colcon / ROS 2
+build/
+install/
+log/
+.colcon*
+colcon.meta
+compile_commands.json
+
+# Python
+**/__pycache__/
+**/.pytest_cache/
+**/*.py[cod]
+**/*.so
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+src/mediapipe_ros2_node/models/*.task

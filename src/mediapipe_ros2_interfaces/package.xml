@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mediapipe_ros2_interfaces</name>
+  <version>0.1.0</version>
+  <description>Interfaces (msgs) for Mediapipe ROS2 suite</description>
+  <maintainer email="you@example.com">You</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_cmake</buildtool_depend>
+
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <!-- 這行是保底：同時放在根節點 -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <!-- 正常位置也保留 -->
+    <member_of_group>rosidl_interface_packages</member_of_group>
+  </export>
+</package>

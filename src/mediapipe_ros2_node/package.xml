@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mediapipe_ros2_node</name>
+  <version>0.1.0</version>
+  <description>Assets (models/launch/rviz) for Mediapipe ROS2 suite</description>
+  <maintainer email="you@example.com">You</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
