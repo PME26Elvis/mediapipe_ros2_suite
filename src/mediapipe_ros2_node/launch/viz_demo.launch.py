@@ -3,15 +3,19 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
     image_topic = LaunchConfiguration('image_topic')
-    num_hands   = LaunchConfiguration('num_hands')
-    use_rviz    = LaunchConfiguration('use_rviz')
+    topic_prefix = LaunchConfiguration('topic_prefix')
+    use_gesture = LaunchConfiguration('use_gesture')
+    publish_debug_image = LaunchConfiguration('publish_debug_image')
 
     return LaunchDescription([
         DeclareLaunchArgument('image_topic', default_value='/image_raw'),
-        DeclareLaunchArgument('num_hands',   default_value='2'),
-        DeclareLaunchArgument('use_rviz',    default_value='true'),
+        DeclareLaunchArgument('topic_prefix', default_value='/mediapipe'),
+        DeclareLaunchArgument('use_gesture', default_value='true'),
+        DeclareLaunchArgument('publish_debug_image', default_value='true'),
+        DeclareLaunchArgument('use_rviz', default_value='true'),
 
         Node(
             package='v4l2_camera',
@@ -22,13 +26,15 @@ def generate_launch_description():
 
         Node(
             package='mediapipe_ros2_py',
-            executable='hand_node',
+            executable='mp_node',
             name='mediapipe_hand_node',
+            output='screen',
             parameters=[{
-                'use_gesture': True,
-                'use_landmarks': True,
-                'num_hands': num_hands,
+                'model': 'hand',
                 'image_topic': image_topic,
+                'topic_prefix': topic_prefix,
+                'use_gesture': use_gesture,
+                'publish_debug_image': publish_debug_image,
             }]
         ),
 

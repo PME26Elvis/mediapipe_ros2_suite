@@ -7,6 +7,27 @@ on:
   pull_request:
 
 jobs:
+
+  launch-contract-tests:
+    name: launch contract tests (no hardware)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test runner
+        run: python3 -m pip install --upgrade pytest
+      - name: Compile launch and entry point Python files
+        run: >-
+          python3 -m py_compile
+          src/mediapipe_ros2_py/setup.py
+          src/mediapipe_ros2_py/mediapipe_ros2_py/mp_node.py
+          src/mediapipe_ros2_py/mediapipe_ros2_py/hand_node_legacy.py
+          src/mediapipe_ros2_node/launch/*.launch.py
+          src/mediapipe_ros2_py/test/test_launch_console_scripts.py
+      - name: Verify launch files match console scripts and mp_node params
+        run: python3 -m pytest src/mediapipe_ros2_py/test/test_launch_console_scripts.py -q
   humble:
     runs-on: ubuntu-22.04
     steps:

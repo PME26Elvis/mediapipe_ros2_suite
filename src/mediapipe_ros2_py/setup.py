@@ -24,6 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mp_node = mediapipe_ros2_py.mp_node:main',
+            'hand_node = mediapipe_ros2_py.hand_node_legacy:main',
             'gesture_to_turtlesim = mediapipe_ros2_py.gesture_to_turtlesim:main',
         ],
     },
