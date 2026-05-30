@@ -15,7 +15,7 @@ from mediapipe.tasks.python.vision import (
 )
 from mediapipe.tasks.python.core.base_options import BaseOptions
 
-from mediapipe_ros2_node.msg import HandLandmarks, HandGesture, Hand
+from mediapipe_ros2_interfaces.msg import HandLandmarks, HandGesture, Hand
 
 # 21‑landmark skeleton edges (MediaPipe index convention)
 SKELETON_PAIRS = [

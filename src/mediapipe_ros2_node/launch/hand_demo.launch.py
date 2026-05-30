@@ -1,16 +1,19 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
     py_node = Node(
         package='mediapipe_ros2_py',
-        executable='hand_node',
+        executable='mp_node',
         name='mediapipe_hand_node',
+        output='screen',
         parameters=[{
-            'use_gesture': True,
-            'use_landmarks': True,
-            'num_hands': 2,
+            'model': 'hand',
             'image_topic': '/camera/image_raw',  # 依你的相機 topic 調整
+            'topic_prefix': '/mediapipe',
+            'use_gesture': True,
+            'publish_debug_image': True,
         }]
     )
 
