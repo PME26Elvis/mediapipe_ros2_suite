@@ -210,13 +210,24 @@ def test_hand_demo_launch_parameters_match_mp_node_contract():
     assert not failures
 
 
-def test_legacy_hand_node_entry_point_is_available_and_uses_interface_messages():
+def test_legacy_hand_node_is_a_compatibility_console_script():
     console_scripts = _console_script_entries()
-    assert console_scripts.get('hand_node') == 'mediapipe_ros2_py.hand_node_legacy:main'
+    assert console_scripts.get('hand_node') == (
+        'mediapipe_ros2_py.hand_node_legacy:main'
+    )
+    legacy_path = PY_MODULE_DIR / 'hand_node_legacy.py'
+    assert legacy_path.exists()
+    legacy_source = legacy_path.read_text()
+    assert 'from mediapipe_ros2_py.mp_node import main as mp_node_main' in legacy_source
 
-    legacy_source = (PY_MODULE_DIR / 'hand_node_legacy.py').read_text()
-    assert (
-        'from mediapipe_ros2_interfaces.msg import '
-        'HandLandmarks, HandGesture, Hand'
-    ) in legacy_source
-    assert 'from mediapipe_ros2_node.msg import' not in legacy_source
+
+def test_no_legacy_message_package_imports_remain():
+    offenders = []
+    for source_file in sorted((REPO_ROOT / 'src').rglob('*.py')):
+        if 'third_party' in source_file.parts:
+            continue
+        source = source_file.read_text()
+        legacy_import = 'mediapipe_ros2_node' + '.msg'
+        if legacy_import in source:
+            offenders.append(str(source_file.relative_to(REPO_ROOT)))
+    assert not offenders
