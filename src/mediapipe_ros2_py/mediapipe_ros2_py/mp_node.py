@@ -21,20 +21,12 @@ from mediapipe_ros2_interfaces.msg import (
     HandLandmarks, HandGesture, Hand,
     FaceLandmarks, PoseLandmarks
 )
-# --- Hand skeleton (21 pts) ---
-HAND_EDGES = [
-    (0,1),(1,2),(2,3),(3,4),
-    (0,5),(5,6),(6,7),(7,8),
-    (0,9),(9,10),(10,11),(11,12),
-    (0,13),(13,14),(14,15),(15,16),
-    (0,17),(17,18),(18,19),(19,20),
-    (5,9),(9,13),(13,17)
-]
-# --- Minimal BlazePose edges (33 pts); feel free to expand ---
-POSE_EDGES = [
-    (11,12), (11,13), (13,15), (12,14), (14,16),
-    (23,24), (11,23), (12,24), (23,25), (25,27), (24,26), (26,28)
-]
+from mediapipe_ros2_py.runtime_contracts import (
+    HAND_EDGES, MODEL_FILENAMES, POSE_EDGES, landmarks_xyz,
+    model_asset_path, timestamp_ms_from_stamp, topic_name,
+    top_category_label_score,
+)
+
 class MPNode(Node):
     def __init__(self):
         super().__init__('mediapipe_node')
@@ -79,14 +71,7 @@ class MPNode(Node):
             "MP_MODELS_DIR",
             os.path.join(get_package_share_directory('mediapipe_ros2_node'), 'models')
         )
-        expected = {
-            'hand': 'hand_landmarker.task',
-            'gesture': 'gesture_recognizer.task',
-            'pose': 'pose_landmarker.task',
-            'face': 'face_landmarker.task',
-        }
-        model_key = self.model if self.model in expected else 'hand'
-        model_path = os.path.join(models_dir, expected[model_key])
+        model_path = str(model_asset_path(models_dir, self.model))
         self.paths = {
             'gesture': os.path.join(models_dir, str(self.get_parameter('gesture_model_filename').value)),
             'hand':    os.path.join(models_dir, str(self.get_parameter('hand_model_filename').value)),
@@ -99,19 +84,19 @@ class MPNode(Node):
                 "Place the required .task files under:\n  %s\n"
                 "Expected names:\n  %s\n"
                 "Or set MP_MODELS_DIR to your folder.",
-                model_path, models_dir, ", ".join(sorted(expected.values()))
+                model_path, models_dir, ", ".join(sorted(MODEL_FILENAMES.values()))
             )
             raise FileNotFoundError(model_path)
 
         # -------- Publishers --------
-        self.pub_markers = self.create_publisher(MarkerArray, f'{self.topic_prefix}/markers', 10)
-        self.pub_debug   = self.create_publisher(Image,       f'{self.topic_prefix}/debug_image', 10) if self.pub_dbg else None
+        self.pub_markers = self.create_publisher(MarkerArray, topic_name(self.topic_prefix, 'markers'), 10)
+        self.pub_debug   = self.create_publisher(Image,       topic_name(self.topic_prefix, 'debug_image'), 10) if self.pub_dbg else None
 
         # per-model publishers
-        self.pub_hand_lm = self.create_publisher(HandLandmarks, f'{self.topic_prefix}/hand/landmarks', 10)
-        self.pub_gesture = self.create_publisher(HandGesture,   f'{self.topic_prefix}/hand/gesture',   10)
-        self.pub_pose_lm = self.create_publisher(PoseLandmarks, f'{self.topic_prefix}/pose/landmarks', 10)
-        self.pub_face_lm = self.create_publisher(FaceLandmarks, f'{self.topic_prefix}/face/landmarks', 10)
+        self.pub_hand_lm = self.create_publisher(HandLandmarks, topic_name(self.topic_prefix, 'hand_landmarks'), 10)
+        self.pub_gesture = self.create_publisher(HandGesture,   topic_name(self.topic_prefix, 'hand_gesture'),   10)
+        self.pub_pose_lm = self.create_publisher(PoseLandmarks, topic_name(self.topic_prefix, 'pose_landmarks'), 10)
+        self.pub_face_lm = self.create_publisher(FaceLandmarks, topic_name(self.topic_prefix, 'face_landmarks'), 10)
 
         # -------- Subscriber --------
         qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -176,6 +161,13 @@ class MPNode(Node):
 
         self.get_logger().info(f"MP node ready: model={self.model}, topic_prefix={self.topic_prefix}")
 
+
+    def _points_from_landmarks(self, landmarks):
+        return [
+            Point(x=x, y=y, z=z)
+            for x, y, z in landmarks_xyz(landmarks, self.last_size, self.coord_mode)
+        ]
+
     # -------- Image callback --------
     def on_image(self, msg: Image):
         try:
@@ -189,7 +181,7 @@ class MPNode(Node):
 
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        ts_ms = int(msg.header.stamp.sec * 1000 + msg.header.stamp.nanosec / 1e6) or int(time.time()*1000)
+        ts_ms = timestamp_ms_from_stamp(msg.header.stamp, time.time() * 1000)
 
         if self.model == 'hand':
             if self.gesture is not None:
@@ -211,13 +203,13 @@ class MPNode(Node):
     def _on_gesture(self, result, output_image, timestamp_ms):
         if not result.gestures:
             return
-        top = result.gestures[0][0]
+        label, score = top_category_label_score(result.gestures[0])
         m = HandGesture()
         m.header = Header()
         m.header.stamp = self.get_clock().now().to_msg()
         m.header.frame_id = self.frame_id
-        m.gesture = top.category_name or top.display_name
-        m.score = float(top.score)
+        m.gesture = label
+        m.score = score
         self.pub_gesture.publish(m)
 
     def _on_hand(self, result, output_image, timestamp_ms):
@@ -230,8 +222,6 @@ class MPNode(Node):
         hlm.header.frame_id = self.frame_id
 
         ma = MarkerArray(); mid = 0
-        w, h = self.last_size
-
         for i, hand in enumerate(result.hand_landmarks):
             hmsg = Hand()
             # handedness
@@ -244,13 +234,7 @@ class MPNode(Node):
                 hmsg.score = 0.0
 
             # landmarks
-            pts = []
-            for lm in hand:
-                x = float(lm.x); y = float(lm.y); z = float(lm.z)
-                if self.coord_mode == 'pixel':
-                    pts.append(Point(x=x*w, y=y*h, z=z))
-                else:
-                    pts.append(Point(x=x, y=y, z=z))
+            pts = self._points_from_landmarks(hand)
             hmsg.landmarks.extend(pts)
             hlm.hands.append(hmsg)
 
@@ -289,17 +273,9 @@ class MPNode(Node):
             return
         plm = PoseLandmarks()
         plm.header = Header(); plm.header.stamp = self.get_clock().now().to_msg(); plm.header.frame_id = self.frame_id
-        w, h = self.last_size
-
         # Use the first person only (MediaPipe returns list)
         pose = result.pose_landmarks[0]
-        pts = []
-        for lm in pose:
-            x = float(lm.x); y = float(lm.y); z = float(lm.z)
-            if self.coord_mode == 'pixel':
-                pts.append(Point(x=x*w, y=y*h, z=z))
-            else:
-                pts.append(Point(x=x, y=y, z=z))
+        pts = self._points_from_landmarks(pose)
         plm.landmarks.extend(pts)
         plm.score = 0.0
         self.pub_pose_lm.publish(plm)
@@ -337,15 +313,8 @@ class MPNode(Node):
             return
         flm = FaceLandmarks()
         flm.header = Header(); flm.header.stamp = self.get_clock().now().to_msg(); flm.header.frame_id = self.frame_id
-        w, h = self.last_size
         face = result.face_landmarks[0]
-        pts = []
-        for lm in face:
-            x = float(lm.x); y = float(lm.y); z = float(lm.z)
-            if self.coord_mode == 'pixel':
-                pts.append(Point(x=x*w, y=y*h, z=z))
-            else:
-                pts.append(Point(x=x, y=y, z=z))
+        pts = self._points_from_landmarks(face)
         flm.landmarks.extend(pts)
         flm.score = 0.0
         self.pub_face_lm.publish(flm)

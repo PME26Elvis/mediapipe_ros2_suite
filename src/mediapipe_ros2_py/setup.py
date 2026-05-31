@@ -9,10 +9,10 @@ setup(
     name=package_name,
     version='0.1.0',
     packages=find_packages(include=[package_name, f'{package_name}.*']),
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'numpy'],
     zip_safe=True,
-    maintainer='you',
-    maintainer_email='you@example.com',
+    maintainer='MediaPipe ROS 2 Suite Maintainers',
+    maintainer_email='mediapipe-ros2-suite-maintainers@users.noreply.github.com',
     description='Mediapipe tasks exposed as ROS 2 nodes',
     license='Apache-2.0',
     data_files=[
@@ -24,7 +24,6 @@ setup(
     entry_points={
         'console_scripts': [
             'mp_node = mediapipe_ros2_py.mp_node:main',
-            'hand_node = mediapipe_ros2_py.hand_node_legacy:main',
             'gesture_to_turtlesim = mediapipe_ros2_py.gesture_to_turtlesim:main',
         ],
     },

@@ -3,10 +3,16 @@
   <name>mediapipe_ros2_node</name>
   <version>0.1.0</version>
   <description>Assets (models/launch/rviz) for Mediapipe ROS2 suite</description>
-  <maintainer email="you@example.com">You</maintainer>
+  <maintainer email="mediapipe-ros2-suite-maintainers@users.noreply.github.com">MediaPipe ROS 2 Suite Maintainers</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>mediapipe_ros2_py</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>v4l2_camera</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
