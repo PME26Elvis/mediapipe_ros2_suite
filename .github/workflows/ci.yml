@@ -62,14 +62,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            python3-ament-package \
             python3-catkin-pkg \
+            ros-jazzy-ament-package \
             ros-jazzy-rosidl-typesupport-c \
             ros-jazzy-rosidl-typesupport-cpp \
             ros-jazzy-rosidl-typesupport-fastrtps-c \
             ros-jazzy-rosidl-typesupport-fastrtps-cpp \
             ros-jazzy-rosidl-typesupport-introspection-c \
             ros-jazzy-rosidl-typesupport-introspection-cpp
+          . /opt/ros/jazzy/setup.bash
           /usr/bin/python3 - <<'PY_CHECK'
           import ament_package
           import catkin_pkg.package
