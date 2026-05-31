@@ -71,6 +71,7 @@ jobs:
             ros-jazzy-rosidl-typesupport-introspection-c \
             ros-jazzy-rosidl-typesupport-introspection-cpp
           . /opt/ros/jazzy/setup.bash
+          echo "PYTHONPATH=${PYTHONPATH}" >> "$GITHUB_ENV"
           /usr/bin/python3 - <<'PY_CHECK'
           import ament_package
           import catkin_pkg.package
