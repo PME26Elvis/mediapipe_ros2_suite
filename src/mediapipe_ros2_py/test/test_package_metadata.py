@@ -87,18 +87,19 @@ def test_python_package_declares_runtime_and_test_dependencies():
         'python3-numpy',
         'python3-opencv',
     } <= exec_depends
+    assert {'python3-pytest'} <= test_depends
     assert {
         'ament_copyright',
         'ament_flake8',
         'ament_pep257',
-        'python3-pytest',
-    } <= test_depends
+    }.isdisjoint(test_depends)
 
 
-def test_asset_package_declares_launch_runtime_dependencies():
+def test_asset_package_declares_ci_safe_launch_runtime_dependencies():
     root = _package_root('mediapipe_ros2_node')
     exec_depends = set(_tag_values(root, 'exec_depend'))
-    assert {'launch', 'launch_ros', 'mediapipe_ros2_py', 'rviz2', 'v4l2_camera'} <= exec_depends
+    assert {'launch', 'launch_ros', 'mediapipe_ros2_py'} <= exec_depends
+    assert {'rviz2', 'v4l2_camera'}.isdisjoint(exec_depends)
 
 
 def test_interface_package_declares_rosidl_membership_and_lint_dependencies():

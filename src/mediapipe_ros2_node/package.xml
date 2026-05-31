@@ -11,8 +11,8 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>mediapipe_ros2_py</exec_depend>
-  <exec_depend>rviz2</exec_depend>
-  <exec_depend>v4l2_camera</exec_depend>
+
+  <!-- rviz2/v4l2_camera are optional demo tools, not CI runtime deps. -->
 
   <export>
     <build_type>ament_cmake</build_type>

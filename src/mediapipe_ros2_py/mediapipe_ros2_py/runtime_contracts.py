@@ -74,7 +74,8 @@ def model_asset_path(models_dir, model):
 
 def topic_name(topic_prefix, suffix_key):
     """Build a published topic name from a canonical suffix key."""
-    return f'{normalize_topic_prefix(topic_prefix)}{TOPIC_SUFFIXES[suffix_key]}'
+    prefix = normalize_topic_prefix(topic_prefix)
+    return f'{prefix}{TOPIC_SUFFIXES[suffix_key]}'
 
 
 def timestamp_ms_from_stamp(stamp, fallback_ms):
@@ -91,7 +92,8 @@ def landmark_xyz(landmark, image_size, coord_mode):
     """Convert a MediaPipe-like landmark to normalized or pixel xyz tuple."""
     if coord_mode not in VALID_COORD_MODES:
         raise ValueError(
-            f'coord_mode must be one of {VALID_COORD_MODES}, got {coord_mode!r}'
+            'coord_mode must be one of '
+            f'{VALID_COORD_MODES}, got {coord_mode!r}'
         )
     x = float(landmark.x)
     y = float(landmark.y)

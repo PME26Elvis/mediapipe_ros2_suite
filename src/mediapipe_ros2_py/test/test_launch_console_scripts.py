@@ -210,10 +210,15 @@ def test_hand_demo_launch_parameters_match_mp_node_contract():
     assert not failures
 
 
-def test_legacy_hand_node_is_not_registered_or_shipped():
+def test_legacy_hand_node_is_a_compatibility_console_script():
     console_scripts = _console_script_entries()
-    assert 'hand_node' not in console_scripts
-    assert not (PY_MODULE_DIR / 'hand_node_legacy.py').exists()
+    assert console_scripts.get('hand_node') == (
+        'mediapipe_ros2_py.hand_node_legacy:main'
+    )
+    legacy_path = PY_MODULE_DIR / 'hand_node_legacy.py'
+    assert legacy_path.exists()
+    legacy_source = legacy_path.read_text()
+    assert 'from mediapipe_ros2_py.mp_node import main as mp_node_main' in legacy_source
 
 
 def test_no_legacy_message_package_imports_remain():
