@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_flake8.main import main_with_errors
 import pytest
+
+ament_flake8 = pytest.importorskip('ament_flake8.main')
+main_with_errors = ament_flake8.main_with_errors
 
 
 @pytest.mark.flake8

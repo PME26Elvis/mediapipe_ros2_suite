@@ -3,7 +3,7 @@
   <name>mediapipe_ros2_interfaces</name>
   <version>0.1.0</version>
   <description>Interfaces (msgs) for Mediapipe ROS2 suite</description>
-  <maintainer email="you@example.com">You</maintainer>
+  <maintainer email="mediapipe-ros2-suite-maintainers@users.noreply.github.com">MediaPipe ROS 2 Suite Maintainers</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -14,6 +14,9 @@
 
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <!-- 這行是保底：同時放在根節點 -->
   <member_of_group>rosidl_interface_packages</member_of_group>

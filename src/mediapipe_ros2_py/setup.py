@@ -9,10 +9,10 @@ setup(
     name=package_name,
     version='0.1.0',
     packages=find_packages(include=[package_name, f'{package_name}.*']),
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'numpy'],
     zip_safe=True,
-    maintainer='you',
-    maintainer_email='you@example.com',
+    maintainer='MediaPipe ROS 2 Suite Maintainers',
+    maintainer_email='mediapipe-ros2-suite-maintainers@users.noreply.github.com',
     description='Mediapipe tasks exposed as ROS 2 nodes',
     license='Apache-2.0',
     data_files=[

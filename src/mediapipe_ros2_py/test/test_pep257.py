@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ament_pep257.main import main
 import pytest
+
+ament_pep257 = pytest.importorskip('ament_pep257.main')
+main = ament_pep257.main
 
 
 @pytest.mark.linter
