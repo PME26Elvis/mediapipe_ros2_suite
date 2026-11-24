@@ -46,6 +46,8 @@ gesture_recognizer.task
 pose_landmarker.task
 face_landmarker.task
 ```
+To use a different folder, set the `models_dir` node parameter or the `MP_MODELS_DIR` environment variable (the parameter takes precedence).
+
 Obtain the models from the **official MediaPipe sources**. This repository does **not** redistribute model binaries; see the License section for details.
 
 ### 3) Run
@@ -84,6 +86,7 @@ rviz2 -d $(ros2 pkg prefix mediapipe_ros2_node)/share/mediapipe_ros2_node/rviz/m
 | `frame_id` | string | `map` | Frame used by visualization markers. |
 | `use_gesture` | bool | `true` | If `model=hand`, also run gesture recognizer. |
 | `publish_debug_image` | bool | `true` | Publish overlay image to RViz. |
+| `models_dir` | string | `''` | Folder containing the `.task` models. Empty falls back to `MP_MODELS_DIR`, then the `mediapipe_ros2_node` share `models/` directory. |
 
 ---
 

@@ -1,5 +1,6 @@
 import os, time, cv2, numpy as np
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
@@ -9,6 +10,7 @@ from std_msgs.msg import Header
 from cv_bridge import CvBridge
 
 import mediapipe as mp
+from ament_index_python.packages import get_package_share_directory
 from mediapipe.tasks.python.core.base_options import BaseOptions
 from mediapipe.tasks.python.vision import (
     GestureRecognizer, GestureRecognizerOptions,
@@ -22,7 +24,7 @@ from mediapipe_ros2_interfaces.msg import (
     FaceLandmarks, PoseLandmarks
 )
 from mediapipe_ros2_py.runtime_contracts import (
-    HAND_EDGES, MODEL_FILENAMES, POSE_EDGES, landmarks_xyz,
+    HAND_EDGES, MODEL_FILENAMES, POSE_EDGES, SUPPORTED_MODELS, landmarks_xyz,
     model_asset_path, timestamp_ms_from_stamp, topic_name,
     top_category_label_score,
 )
@@ -39,6 +41,7 @@ class MPNode(Node):
         self.declare_parameter('frame_id', 'map')
         self.declare_parameter('publish_debug_image', True)
         self.declare_parameter('output_coord_mode', 'normalized') # 'normalized' | 'pixel'
+        self.declare_parameter('models_dir', '')
         # confidence thresholds
         self.declare_parameter('min_detection_confidence', 0.5)
         self.declare_parameter('min_presence_confidence', 0.5)
@@ -63,13 +66,13 @@ class MPNode(Node):
         self.min_trk = float(self.get_parameter('min_tracking_confidence').value)
         self._frames = 0
         self._last_report = self.get_clock().now().nanoseconds
-        # resolve models dir via ament index (share dir of message pkg)
-        from ament_index_python.packages import get_package_share_directory
-        share_dir = get_package_share_directory('mediapipe_ros2_node')
-        models_dir = os.path.join(share_dir, 'models')
-        models_dir = os.getenv(
-            "MP_MODELS_DIR",
-            os.path.join(get_package_share_directory('mediapipe_ros2_node'), 'models')
+        if self.model not in SUPPORTED_MODELS:
+            supported = "|".join(SUPPORTED_MODELS)
+            self.get_logger().error(f"param 'model' must be one of: {supported}")
+            raise ValueError(f"unsupported model: {self.model}")
+
+        models_dir = self._resolve_models_dir(
+            str(self.get_parameter('models_dir').value)
         )
         model_path = str(model_asset_path(models_dir, self.model))
         self.paths = {
@@ -78,15 +81,20 @@ class MPNode(Node):
             'pose':    os.path.join(models_dir, str(self.get_parameter('pose_model_filename').value)),
             'face':    os.path.join(models_dir, str(self.get_parameter('face_model_filename').value)),
         }
-        if not os.path.exists(model_path):
+        required_paths = [model_path]
+        if self.model == 'hand' and self.use_gesture:
+            required_paths.append(self.paths['gesture'])
+        missing_paths = [path for path in required_paths if not os.path.exists(path)]
+        if missing_paths:
+            missing = "\n  ".join(missing_paths)
+            expected = ", ".join(sorted(MODEL_FILENAMES.values()))
             self.get_logger().error(
-                "\nModel file not found: %s\n"
-                "Place the required .task files under:\n  %s\n"
-                "Expected names:\n  %s\n"
-                "Or set MP_MODELS_DIR to your folder.",
-                model_path, models_dir, ", ".join(sorted(MODEL_FILENAMES.values()))
+                f"\nModel file not found:\n  {missing}\n"
+                f"Place the required .task files under:\n  {models_dir}\n"
+                f"Expected names:\n  {expected}\n"
+                "Or set the models_dir parameter / MP_MODELS_DIR to your folder."
             )
-            raise FileNotFoundError(model_path)
+            raise FileNotFoundError(missing_paths[0])
 
         # -------- Publishers --------
         self.pub_markers = self.create_publisher(MarkerArray, topic_name(self.topic_prefix, 'markers'), 10)
@@ -160,6 +168,13 @@ class MPNode(Node):
             self.get_logger().error("param 'model' must be one of: hand|pose|face")
 
         self.get_logger().info(f"MP node ready: model={self.model}, topic_prefix={self.topic_prefix}")
+
+
+    def _resolve_models_dir(self, models_dir_param):
+        models_dir = models_dir_param.strip() or os.getenv("MP_MODELS_DIR", "").strip()
+        if models_dir:
+            return os.path.abspath(os.path.expanduser(models_dir))
+        return os.path.join(get_package_share_directory('mediapipe_ros2_node'), 'models')
 
 
     def _points_from_landmarks(self, landmarks):
@@ -377,8 +392,17 @@ class MPNode(Node):
 
 def main():
     rclpy.init()
-    rclpy.spin(MPNode())
-    rclpy.shutdown()
+    node = None
+    try:
+        node = MPNode()
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
+    finally:
+        if node is not None:
+            node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

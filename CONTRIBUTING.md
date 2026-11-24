@@ -15,7 +15,7 @@ Thanks for your interest in contributing! This project turns MediaPipe Tasks int
   colcon build --symlink-install
   source install/setup.bash
   ````
-- Models: this repo does not redistribute .task assets. Place them under `src/mediapipe_ros2_node/models/` using the expected filenames: `hand_landmarker.task`, `gesture_recognizer.task`, `pose_landmarker.task`, `face_landmarker.task`. You may also set `MP_MODELS_DIR` to point to a custom folder.
+- Models: this repo does not redistribute .task assets. Place them under `src/mediapipe_ros2_node/models/` using the expected filenames: `hand_landmarker.task`, `gesture_recognizer.task`, `pose_landmarker.task`, `face_landmarker.task`. You may also set the `models_dir` node parameter or `MP_MODELS_DIR` to point to a custom folder.
 
 ## Running locally
 
